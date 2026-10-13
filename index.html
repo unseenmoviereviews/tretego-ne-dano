@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A1242">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Третьего не дано</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Телестудия: тёмно-синий павильон с прожекторами, белые карточки вопросов, золото табло.
+   Один осознанный вид без тёмной/светлой темы: студия всегда одна. */
+:root{
+  --studio:#101C5C; --studio-2:#1D2F8A; --night:#0A1242;
+  --card:#FFFFFF; --ink:#141A3C; --dim:#5B6390; --rule:#E3E6F2;
+  --gold:#FFC21A; --gold-ink:#221900; --magenta:#E8337F; --cyan:#2CC8EE;
+  --plate:#15256F; --plate-edge:#5670E0; --plate-ink:#FFFFFF;
+  --ok:#18A864; --ok-edge:#7BE3AE; --bad:#DE3F46; --bad-edge:#FF9A9E;
+  --f-show:"Unbounded","Arial Black","Segoe UI",system-ui,sans-serif;
+  --f-body:"Golos Text","Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;color:var(--ink);font:16px/1.5 var(--f-body);-webkit-font-smoothing:antialiased;
+  background-color:var(--studio);
+  background-image:
+    radial-gradient(60% 40% at 8% 0%,rgba(232,51,127,.38),transparent 70%),
+    radial-gradient(55% 38% at 95% 2%,rgba(44,200,238,.32),transparent 70%),
+    radial-gradient(80% 50% at 50% 105%,rgba(255,194,26,.18),transparent 70%),
+    linear-gradient(180deg,var(--studio) 0%,var(--night) 100%);
+  background-attachment:fixed;min-height:100vh;
+  padding-bottom:calc(86px + env(safe-area-inset-bottom,0px))}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.wrap{max-width:620px;margin:0 auto;padding-left:16px;padding-right:16px}
+h1,h2,.show,.logo,.money,.rt,.rn,.sum,.grade b,.ad-brand{font-family:var(--f-show);font-weight:700}
+h2{font-size:17px;line-height:1.25;margin:0 0 10px;letter-spacing:.01em;text-wrap:balance}
+p{margin:0 0 8px}
+.hint{color:rgba(255,255,255,.72);font-size:13px}
+.center{text-align:center}
+
+/* ---------- обложка ---------- */
+.cover{padding:calc(36px + env(safe-area-inset-top,0px)) 0 22px;text-align:center;color:#fff}
+.onair{display:inline-block;background:var(--magenta);color:#fff;font:700 11px/1 var(--f-show);letter-spacing:.24em;
+  text-transform:uppercase;padding:7px 12px 6px;border-radius:3px;box-shadow:0 0 22px rgba(232,51,127,.6)}
+.show{font-size:clamp(40px,12vw,58px);line-height:.98;margin:18px 0 12px;letter-spacing:-.02em;text-transform:uppercase;
+  color:var(--gold);text-shadow:0 0 30px rgba(255,194,26,.45),0 3px 0 #9A6B00}
+.tag{color:rgba(255,255,255,.86);max-width:30ch;margin:0 auto 18px;font-size:15px}
+.facts{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.facts span{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:7px 12px;font-size:12.5px;color:#fff}
+.facts b{font-family:var(--f-show);margin-right:5px;color:var(--gold)}
+.card{background:var(--card);color:var(--ink);border-radius:14px;padding:16px;margin:0 0 12px;box-shadow:0 10px 28px rgba(5,10,40,.35)}
+.form{margin-top:6px}
+.field{display:block;margin:0 0 12px}
+.field span{display:block;font-size:12px;color:var(--dim);margin-bottom:5px;letter-spacing:.06em;text-transform:uppercase}
+.field input{width:100%;min-height:50px;padding:12px 14px;border:1.5px solid var(--rule);border-radius:10px;background:#F7F8FC;font-size:16px}
+.field input:focus{border-color:var(--studio-2);outline:none}
+.err{color:var(--bad);font-size:13px;min-height:18px;font-weight:500}
+
+/* ---------- шапка ---------- */
+.top{position:sticky;top:0;z-index:30;background:rgba(10,18,66,.9);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  padding-top:env(safe-area-inset-top,0px);color:#fff;border-bottom:1px solid rgba(255,255,255,.12)}
+.top-in{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:9px;padding-bottom:8px}
+.logo{font-size:11px;line-height:1.05;text-transform:uppercase;letter-spacing:.06em;color:var(--gold)}
+.tb-r{display:flex;flex-direction:column;align-items:flex-end;gap:1px}
+.money{font-size:19px;color:var(--gold);font-variant-numeric:tabular-nums;text-shadow:0 0 14px rgba(255,194,26,.4);letter-spacing:-.01em}
+.money.bump{animation:bump .5s ease}
+.meta{font-size:11.5px;color:rgba(255,255,255,.72)}
+.prog{height:3px;background:rgba(255,255,255,.12)}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--magenta),var(--gold))}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+/* ---------- сцена ---------- */
+.stage{padding-top:16px}
+.host{display:flex;gap:10px;align-items:flex-start;margin:0 0 12px}
+.av{flex:0 0 46px;height:46px;border-radius:50%;background:#2A3C9C;border:2px solid var(--gold);overflow:hidden;display:block}
+.av svg{width:100%;height:100%;display:block}
+.bubble{position:relative;flex:1;min-width:0;background:var(--card);color:var(--ink);border-radius:4px 14px 14px 14px;padding:10px 13px 11px;
+  box-shadow:0 8px 22px rgba(5,10,40,.3)}
+.bubble b{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:2px;font-weight:600}
+.bubble p{margin:0;font-size:15px;line-height:1.45}
+.bubble.ok{box-shadow:inset 4px 0 0 var(--ok),0 8px 22px rgba(5,10,40,.3)}
+.bubble.bad{box-shadow:inset 4px 0 0 var(--bad),0 8px 22px rgba(5,10,40,.3)}
+.q .qt{font-size:18px;line-height:1.42;margin:0;font-weight:500}
+.quote .qt{font-style:normal}
+.sub-q{color:#fff;font-weight:600;font-size:15px;margin:16px 2px 8px}
+.pts{display:inline-block;margin-left:6px;font-size:11px;font-weight:600;color:var(--gold-ink);background:var(--gold);border-radius:999px;padding:1px 8px;vertical-align:2px}
+.rule{display:flex;gap:12px;padding:9px 0;border-top:1px solid var(--rule);font-size:14.5px}
+.rule:first-of-type{border-top:0}
+.rule b{flex:0 0 112px;font-weight:600}
+.rule span{color:var(--dim)}
+
+/* ---------- плашки ---------- */
+.plates{display:grid;gap:9px;margin:0 0 12px}
+.plate{--h:16px;display:block;width:100%;text-align:left;padding:2px;background:var(--plate-edge);
+  clip-path:polygon(var(--h) 0,calc(100% - var(--h)) 0,100% 50%,calc(100% - var(--h)) 100%,var(--h) 100%,0 50%)}
+.plate > span{display:flex;gap:10px;align-items:baseline;background:var(--plate);color:var(--plate-ink);min-height:50px;
+  padding:13px calc(var(--h) + 10px);line-height:1.35;font-size:15px;
+  clip-path:polygon(var(--h) 0,calc(100% - var(--h)) 0,100% 50%,calc(100% - var(--h)) 100%,var(--h) 100%,0 50%)}
+.plate em{font-style:normal;font-family:var(--f-show);font-weight:700;color:var(--gold);font-size:13px;flex:0 0 auto}
+.plate:not([disabled]):active > span{background:#22358F}
+.plate.ok{background:var(--ok-edge)} .plate.ok > span{background:var(--ok)} .plate.ok em{color:#fff}
+.plate.bad{background:var(--bad-edge)} .plate.bad > span{background:var(--bad)} .plate.bad em{color:#fff}
+.plate.off{opacity:.45}
+.plate[disabled]{cursor:default}
+
+/* ---------- раунды ---------- */
+.round,.sp-head{text-align:center;color:#fff;padding:14px 0 16px}
+.rn{display:inline-block;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--cyan)}
+.rt{font-size:clamp(28px,8.5vw,40px);line-height:1.02;margin:8px 0 10px;text-transform:uppercase;letter-spacing:-.01em;text-wrap:balance;color:#fff}
+.round .rt{color:var(--gold);text-shadow:0 0 26px rgba(255,194,26,.4)}
+.law{display:inline-block;font-size:13px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:5px 12px;color:#fff}
+.round.super .rt{font-size:clamp(34px,10vw,48px);color:#fff;text-shadow:0 0 30px rgba(232,51,127,.7)}
+.sp-head{padding-bottom:12px}
+.sp-head .rt{font-size:clamp(22px,6.5vw,28px)}
+
+/* ---------- реклама ---------- */
+.banked{display:flex;justify-content:space-between;align-items:baseline;gap:10px;color:#fff;border:1.5px solid var(--gold);
+  border-radius:12px;padding:12px 14px;margin:0 0 16px;background:rgba(255,194,26,.08)}
+.banked span{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.8)}
+.banked b{font-family:var(--f-show);color:var(--gold);font-size:20px;font-variant-numeric:tabular-nums}
+.ad{position:relative;background:var(--card);border-radius:16px;padding:22px 18px 20px;overflow:hidden;
+  box-shadow:0 12px 30px rgba(5,10,40,.4);border-top:8px solid var(--magenta)}
+.ad::after{content:"";position:absolute;right:-40px;top:-40px;width:140px;height:140px;border-radius:50%;background:var(--gold);opacity:.22}
+.ad-chip{display:inline-block;font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim);border:1px solid var(--rule);
+  border-radius:3px;padding:3px 8px;margin-bottom:12px}
+.ad-brand{font-size:24px;line-height:1.1;margin:0 0 10px;color:var(--magenta);transform:rotate(-1.5deg);transform-origin:left;text-wrap:balance}
+.ad-text{font-size:18px;line-height:1.4;font-weight:500;margin:0 0 14px}
+.ad-small{font-size:11.5px;color:var(--dim);margin:0;font-style:italic}
+
+/* ---------- гость, звонок ---------- */
+.guest{display:flex;gap:12px;align-items:center;color:#fff;margin:2px 0 12px}
+.gav{flex:0 0 56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;padding:12px;
+  background:var(--cyan);color:var(--night);border:2px solid #fff}
+.gav svg{width:100%;height:100%}
+.g-key{background:var(--gold)} .g-wheat{background:#F0D27A} .g-plate{background:#9FE4C4} .g-wrench{background:#F69BC0}
+.guest b{display:block;font-size:16px}
+.guest span{display:block;font-size:13px;color:rgba(255,255,255,.75)}
+.call{display:flex;align-items:center;gap:10px;color:#fff;font-size:14px;margin:2px 0 12px}
+.ring{flex:0 0 38px;height:38px;border-radius:50%;background:var(--magenta);display:flex;align-items:center;justify-content:center;padding:9px;color:#fff;
+  box-shadow:0 0 0 0 rgba(232,51,127,.6);animation:ring 1.6s ease-out infinite}
+.ring svg{width:100%;height:100%}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(232,51,127,.55)}100%{box-shadow:0 0 0 14px rgba(232,51,127,0)}}
+
+/* ---------- супер-игра ---------- */
+.cal{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin:0 0 12px}
+.day{background:var(--card);color:var(--ink);border-radius:10px;padding:10px 4px 9px;text-align:center;min-height:66px;
+  box-shadow:0 6px 16px rgba(5,10,40,.3);transition:transform .15s}
+.day b{display:block;font-family:var(--f-show);font-size:16px}
+.day em{display:block;font-style:normal;font-size:10.5px;margin-top:4px;color:var(--dim);letter-spacing:.02em}
+.day.target{box-shadow:0 0 0 3px var(--gold),0 6px 16px rgba(5,10,40,.3)}
+.day.x{background:#C9CDE0;color:#6B7194}
+.day.x b{text-decoration:line-through;text-decoration-thickness:2px}
+.day.quiet{background:#DCE0EF}
+.day.exam{background:var(--magenta);color:#fff;transform:scale(1.06)}
+.day.exam em{color:#fff;font-weight:600}
+.day.nope{animation:nope .35s}
+@keyframes nope{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.twist{border-left:5px solid var(--magenta)}
+.twist p{font-weight:500;margin:0}
+.jcard{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px}
+.side{background:#FFF8E1;border:2px dashed #E0B640;border-radius:12px;padding:12px;min-width:0;color:var(--ink)}
+.side.b{background:#FDEBF3;border-color:#E58AB4}
+.side span{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:5px}
+.side p{margin:0;font-weight:600;font-size:15px;line-height:1.35}
+.tries{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px}
+.chain{list-style:none;margin:0 0 10px;padding:12px 14px;background:var(--card);border-radius:12px;counter-reset:c}
+.chain li{position:relative;padding:4px 0 4px 26px;font-size:14.5px;counter-increment:c}
+.chain li::before{content:counter(c);position:absolute;left:0;top:5px;width:18px;height:18px;border-radius:50%;background:var(--studio-2);color:#fff;
+  font:700 10px/18px var(--f-show);text-align:center}
+.chain li.boom{color:var(--bad);font-weight:600}
+.chain li.boom::before{background:var(--bad);content:"!"}
+.words{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 12px}
+.word{position:relative;background:var(--card);color:var(--ink);border-radius:8px;padding:9px 12px;font-size:16px;font-weight:500;
+  box-shadow:0 5px 14px rgba(5,10,40,.28)}
+.word.on{background:var(--gold);color:var(--gold-ink)}
+.word i{position:absolute;top:-8px;right:-6px;font:700 10px/18px var(--f-show);font-style:normal;background:var(--magenta);color:#fff;
+  min-width:18px;height:18px;border-radius:9px;text-align:center;padding:0 4px}
+.counter{display:flex;align-items:baseline;justify-content:center;gap:8px;color:#fff;margin:0 0 12px}
+.counter b{font-family:var(--f-show);font-size:34px;color:var(--gold);font-variant-numeric:tabular-nums}
+.counter span{font-size:13px;color:rgba(255,255,255,.75)}
+
+/* ---------- кнопки ---------- */
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:40;padding:10px 0 calc(12px + env(safe-area-inset-bottom,0px));
+  background:linear-gradient(180deg,rgba(10,18,66,0),rgba(10,18,66,.92) 34%)}
+.btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:54px;border-radius:12px;
+  background:var(--gold);color:var(--gold-ink);font:700 15px/1.2 var(--f-show);letter-spacing:.02em;padding:12px 16px;
+  box-shadow:0 6px 0 #A37300,0 12px 24px rgba(0,0,0,.3)}
+.btn:active:not([disabled]){transform:translateY(3px);box-shadow:0 3px 0 #A37300,0 8px 18px rgba(0,0,0,.3)}
+.btn[disabled]{background:#56608F;color:#C3C8E3;box-shadow:none}
+.btn.ghost{background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.4);box-shadow:none;font-size:13.5px;min-height:48px}
+.btn.ghost.used{border-color:var(--gold);color:var(--gold)}
+.center .btn.ghost{display:inline-flex;width:auto;padding:12px 22px;margin:4px 0 12px}
+.link{color:rgba(255,255,255,.7);text-decoration:underline;font-size:13px;padding:10px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* ---------- финал ---------- */
+.final{text-align:center;color:#fff;padding:calc(30px + env(safe-area-inset-top,0px)) 0 18px}
+.won{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:rgba(255,255,255,.75);margin:18px 0 2px}
+.sum{font-size:clamp(34px,11vw,52px);color:var(--gold);margin:0 0 14px;font-variant-numeric:tabular-nums;letter-spacing:-.02em;
+  text-shadow:0 0 30px rgba(255,194,26,.5),0 3px 0 #9A6B00}
+.grade{display:inline-flex;align-items:center;gap:12px;background:var(--card);color:var(--ink);border-radius:14px;padding:10px 18px 10px 12px}
+.grade b{font-size:46px;line-height:1;color:var(--magenta)}
+.final.gold .grade b{color:#C58A00}
+.grade span{font-weight:600;font-size:15px}
+.pts-line{margin:12px 0 0;font-size:13px;color:rgba(255,255,255,.78)}
+.rbar{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:9px 0;border-top:1px solid var(--rule);font-size:14.5px}
+.rbar:first-of-type{border-top:0}
+.rbar b{font-variant-numeric:tabular-nums}
+.rbar i{grid-column:1/-1;height:6px;border-radius:3px;background:#E8EAF4;overflow:hidden}
+.rbar s{display:block;height:100%;background:linear-gradient(90deg,var(--magenta),var(--gold))}
+.miss summary{cursor:pointer;font-weight:600;list-style:none}
+.miss summary::-webkit-details-marker{display:none}
+.miss summary::after{content:" ▾";color:var(--dim)}
+.mrow{border-top:1px solid var(--rule);padding:10px 0 4px}
+.mrow:first-of-type{margin-top:8px}
+.mk{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--magenta);margin-bottom:3px}
+.mrow p{margin:0 0 4px;font-size:14px}
+.mrow .hint{color:var(--dim)}
+@media (prefers-reduced-motion:reduce){.ring,.money.bump,.day.nope{animation:none}.day{transition:none}}
+@media (max-width:360px){.rule b{flex-basis:92px}.q .qt{font-size:17px}.day em{font-size:9.5px}.day b{font-size:14px}.cal{gap:5px}}
+
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ============================================================
+   «ТРЕТЬЕГО НЕ ДАНО». Телевикторина-пародия.
+   Тема 2, пара 9: закон исключённого третьего, парадоксы,
+   закон достаточного основания.
+   Максимум 50 баллов = 1 000 000 ₽ на табло.
+   ============================================================ */
+var PASS_HASH = 1127430439;   // пароль преподавателя: «пароль»
+var MINUTES = 45;
+var RUB_PER_POINT = 20000;
+var HOST = "Игорь Белов";
+
+var INTRO = {
+  hello: "Добрый вечер! В эфире «Третьего не дано» — единственная программа, где на каждый вопрос есть ровно два ответа. Почти всегда.",
+  rules: [
+    ["Четыре раунда", "«Либо — либо», «Гость студии», «Звонок в студию» и супер-игра."],
+    ["Ответ один раз", "Нажали — ответ засчитан. Переиграть нельзя, как в настоящем эфире."],
+    ["Табло", "Каждый балл — 20 000 ₽. Пятьдесят баллов — миллион."],
+    ["Оценка", "Выставляется сразу после супер-игры."]
+  ]
+};
+
+/* ---------- Раунд 1. Исключённое третье ---------- */
+var R1 = {
+  title: "Либо — либо",
+  law: "Закон исключённого третьего",
+  rule: "Из двух противоречащих высказываний одно обязательно истинно, третьего не дано. Но работает закон только для противоречащих: одно должно целиком отрицать другое. «Горячий» и «холодный» — не такая пара: между ними есть «тёплый».",
+  ask: "Здесь действительно третьего не дано?",
+  items: [
+    { id: "a1", t: "Подсудимый либо виновен в предъявленном обвинении, либо не виновен.", third: null,
+      why: "Противоречащая пара: второе высказывание целиком отрицает первое. Третьего не дано. Доказана ли вина — уже вопрос доказательств, а не логики." },
+    { id: "a2", t: "Сделка либо действительна, либо ничтожна.",
+      third: ["Оспоримая: действует, пока суд не признает её недействительной", "Сделка, заключённая в выходной день", "Устная сделка"],
+      why: "«Действительна» и «ничтожна» — противоположности, а не противоречие. Между ними — оспоримая сделка." },
+    { id: "a3", t: "Свидетель либо говорит правду, либо лжёт.",
+      third: ["Добросовестно заблуждается: говорит неправду, искренне считая её правдой", "Говорит правду, но неохотно", "Говорит тихо и неразборчиво"],
+      why: "Лгать — значит говорить неправду намеренно. Тот, кто искренне ошибается, не лжёт, но и правды не говорит." },
+    { id: "a4", t: "Число 2026 либо делится на два без остатка, либо не делится.", third: null,
+      why: "Противоречащая пара. Третьего не дано. Делится, кстати." },
+    { id: "a5", t: "Либо все в группе сдали зачёт, либо никто не сдал.",
+      third: ["Некоторые сдали, а некоторые нет", "Все сдали на отлично", "Зачёт сдал преподаватель"],
+      why: "Отрицание «все сдали» — это «не все сдали», а вовсе не «никто». Перед нами противоположности, между ними место для «некоторых»." },
+    { id: "a6", t: "Либо вы с нами, либо вы против нас.",
+      third: ["Ни с вами, ни против: нейтральная позиция", "С вами, но по вторникам", "Против, но вежливо"],
+      why: "Классическая ложная дилемма. Противоречием было бы «с нами» и «не с нами». А «не с нами» ещё не значит «против»." },
+    { id: "a7", t: "Суд по уголовному делу либо выносит обвинительный приговор, либо оправдательный.",
+      third: ["Прекращает уголовное дело, например за примирением сторон", "Выносит приговор устно, без протокола", "Откладывает решение навсегда"],
+      why: "Дело может закончиться и без приговора: его прекращают за примирением сторон, по истечении сроков давности и по другим основаниям." },
+    { id: "a8", t: "Лицо либо достигло шестнадцати лет, либо не достигло.", third: null,
+      why: "Противоречащая пара. Закон для того и проводит точную черту по возрасту, чтобы третьего не оставалось." },
+    { id: "a9", t: "«Вы перестали опаздывать на пары? Отвечайте: да или нет».",
+      third: ["«Я никогда не опаздывал»: ответ, который отвергает саму предпосылку", "«Иногда»", "«Спросите старосту»"],
+      why: "И «да», и «нет» признают, что раньше вы опаздывали. Честный третий ответ отвергает предпосылку вопроса." },
+    { id: "a10", t: "Договор на день подписания либо заключён, либо не заключён.", third: null,
+      why: "Противоречащая пара: «не заключён» целиком отрицает «заключён». Третьего не дано." }
+  ]
+};
+
+/* ---------- Раунд 2. Парадоксы ---------- */
+var R2 = {
+  title: "Гость студии",
+  law: "Парадоксы",
+  rule: "Парадокс — рассуждение, в котором из правдоподобных посылок по правильным шагам выходит противоречие. Наши гости в этом специалисты. Сначала разберитесь, что происходит, потом — где источник.",
+  guests: [
+    { id: "g1", name: "Николай Иванович Кудрин", role: "парикмахер, посёлок Каменка", icon: "scissors",
+      say: "Я брею всех мужчин Каменки, которые не бреются сами. И только их. Сам я, разумеется, тоже мужчина и тоже из Каменки.",
+      qs: [
+        { q: "Бреет ли Николай Иванович себя?",
+          o: ["Если бреет — не должен, если не бреет — должен", "Да, бреет", "Нет, не бреет", "Бреется через раз"], a: 0,
+          why: "Если он бреет себя, то он из тех, кто бреется сам, — таких он не бреет. Если не бреет — значит, он из тех, кто сам не бреется, — таких он обязан брить." },
+        { q: "Как разрешить парадокс?",
+          o: ["Такого парикмахера быть не может: условие противоречит само себе", "Он не бреется вовсе, а носит бороду", "Он бреется в соседнем посёлке", "Это шутка, логики тут нет"], a: 0,
+          why: "Борода не спасает: тогда он не бреется сам и должен брить себя. Выход один — признать, что описанного человека не существует." }
+      ] },
+    { id: "g2", name: "Тамара Павловна Гречко", role: "управдом", icon: "key",
+      say: "Забрала со двора самокат жильца. Говорю ему: угадаешь, что я с самокатом сделаю, — верну. Не угадаешь — оставлю себе. А он мне: «Вы его не вернёте».",
+      qs: [
+        { q: "Как поступить Тамаре Павловне?",
+          o: ["Что бы она ни сделала, условие будет нарушено", "Вернуть самокат", "Оставить самокат себе", "Жилец не угадал, вопрос закрыт"], a: 0,
+          why: "Оставит себе — жилец угадал, надо вернуть. Вернёт — жилец не угадал, надо оставить. Выхода нет." },
+        { q: "На чём держится ловушка?",
+          o: ["Ответ жильца говорит о том самом действии, которое от этого ответа зависит", "Самокат был чужой", "Тамара Павловна сразу обманывала", "Угадывать вообще нельзя"], a: 0,
+          why: "Это парадокс «Крокодил»: предсказание ссылается на поступок, а поступок — на предсказание. Получается замкнутый круг." }
+      ] },
+    { id: "g3", name: "Семён Ильич Зернов", role: "агроном", icon: "wheat",
+      say: "Одно зерно — не куча. Если к не-куче добавить одно зерно, куча не появится. Значит, и миллион зёрен — не куча. Всё строго.",
+      qs: [
+        { q: "Где слабое место?",
+          o: ["Слово «куча» не имеет точной границы, а рассуждение обращается с ним как с точным", "Миллион зёрен — действительно не куча", "Нельзя добавлять зёрна по одному", "Слабого места нет"], a: 0,
+          why: "Каждый шаг выглядит безобидно, но «куча» — размытое понятие. Где кончается не-куча, сказать нельзя." },
+        { q: "При чём тут закон исключённого третьего?",
+          o: ["Для размытых понятий бывают пограничные случаи: ни уверенного «куча», ни уверенного «не куча»", "Ни при чём", "Закон утверждает, что куч не бывает", "Закон требует считать зёрна поштучно"], a: 0,
+          why: "Поэтому право и не полагается на размытые слова: «достиг шестнадцати лет» вместо «повзрослел»." }
+      ] },
+    { id: "g4", name: "Дима Шарапов", role: "студент второго курса", icon: "plate",
+      say: "Две столовые. Одинаково далеко, одинаковое меню, одинаковые цены. Ни одного основания выбрать одну из них. А по закону достаточного основания без основания нельзя. Значит, останусь голодным.",
+      qs: [
+        { q: "Прав ли Дима?",
+          o: ["Нет: закон требует обосновывать утверждения, а не каждый поступок", "Да, придётся голодать", "Да, закон запрещает выбирать наугад", "Нет, одна столовая всегда лучше"], a: 0,
+          why: "Это буриданов осёл в студенческом исполнении. Пойти в любую столовую можно и без причины. Нельзя без причины утверждать, что левая лучше правой." },
+        { q: "Чего на самом деле требует закон достаточного основания?",
+          o: ["Чтобы всякое утверждение, которое мы считаем истинным, было обосновано", "Чтобы у любого события в мире была причина", "Чтобы вариантов выбора было не меньше двух", "Чтобы основание было одно-единственное"], a: 0,
+          why: "Речь о мыслях: утверждаешь — обоснуй. О поступках и о мире как таковом закон ничего не говорит." }
+      ] },
+    { id: "g5", name: "Пётр Михайлович Сомов", role: "завхоз", icon: "wrench",
+      say: "Я могу всё. Хотите, сделаю сейф, который сам не смогу открыть?",
+      qs: [
+        { q: "Допустим, он сделал такой сейф. Может ли Пётр Михайлович всё?",
+          o: ["Нет: есть сейф, который он не открывает. А не сделает — тоже не всё", "Да, ведь сейф он сделал", "Да, если сейф хороший", "Это зависит от замка"], a: 0,
+          why: "Сделал — не может открыть. Не может сделать — не может сделать. В обоих случаях «всё» не выходит." },
+        { q: "Откуда парадокс?",
+          o: ["Понятие «может всё» включает и способность себя ограничить, поэтому противоречиво", "Сейфы бывают ненадёжные", "Завхоз просто преувеличивает", "Сейфы делают на заводе, а не завхозы"], a: 0,
+          why: "Противоречие спрятано в самом понятии, а не в сейфе. Это парадокс всемогущества." }
+      ] }
+  ]
+};
+
+/* ---------- Раунд 3. Достаточное основание ---------- */
+var R3 = {
+  title: "Звонок в студию",
+  law: "Закон достаточного основания",
+  rule: "Всякое утверждение, которое мы считаем истинным, должно быть обосновано. Основание должно быть истинным и действительно вести к выводу. Зрители звонят в студию — оцените, чем они обосновывают свои слова.",
+  ask: "Чем подкреплено утверждение?",
+  cats: [
+    "Основания достаточно",
+    "Круг: вывод доказан сам собой",
+    "«После» выдано за «вследствие»",
+    "Ссылка на авторитет или толпу",
+    "Поспешное обобщение"
+  ],
+  calls: [
+    { id: "c1", who: "Марина, Тверь", t: "Этот закон справедливый, потому что он правильный.", a: 1,
+      why: "«Справедливый» и «правильный» здесь одно и то же. Утверждение подпирает само себя." },
+    { id: "c2", who: "Олег, Казань", t: "Надел на экзамен красный свитер — и сдал. Теперь хожу в нём на все экзамены: свитер работает.", a: 2,
+      why: "Сдал после того, как надел. Отсюда не следует, что сдал потому, что надел." },
+    { id: "c3", who: "Людмила Ивановна, Омск", t: "Об этом весь подъезд говорит. Значит, правда.", a: 3,
+      why: "Число говорящих не делает утверждение истинным. Подъезд мог ошибиться всем составом." },
+    { id: "c4", who: "Артём, Пермь", t: "Мне нахамили два таксиста. Все таксисты — хамы.", a: 4,
+      why: "Два случая — не основание для вывода обо всех." },
+    { id: "c5", who: "Сергей, Челябинск", t: "Договор недействителен: его подписал человек без полномочий. Это подтверждают выписка из реестра и отозванная доверенность.", a: 0,
+      why: "Основание истинно, проверяемо и прямо ведёт к выводу." },
+    { id: "c6", who: "Наталья, Курск", t: "Знакомый адвокат сказал, что я выиграю суд. Значит, выиграю.", a: 3,
+      why: "Мнение адвоката — прогноз, а не доказательство. Ссылка на авторитет вместо доводов." },
+    { id: "c7", who: "Ирина, Самара", t: "Свидетель лжёт, потому что говорит неправду.", a: 1,
+      why: "Основание пересказывает вывод другими словами." },
+    { id: "c8", who: "Денис, Уфа", t: "Подсудимый был на месте происшествия: это подтверждают запись камеры, геолокация его телефона и показания двух незнакомых друг с другом свидетелей.", a: 0,
+      why: "Три независимых источника, и все ведут к одному выводу. Основания достаточно." },
+    { id: "c9", who: "Валентина, Курган", t: "Как начали показывать прогноз погоды по телевизору, так погода и испортилась.", a: 2,
+      why: "Прогноз шёл раньше плохой погоды, но это не делает его причиной." },
+    { id: "c10", who: "Глеб, Тюмень", t: "Съел в этой столовой один пирожок — невкусный. Тут вся еда плохая.", a: 4,
+      why: "Один пирожок — слишком узкое основание для вывода обо всём меню." },
+    { id: "c11", who: "Пётр Аркадьевич, Владимир", t: "Это лекарство помогает: его рекламирует известный актёр.", a: 3,
+      why: "Актёр — авторитет в кино, а не в медицине. Да и в медицине мнение не заменило бы исследований." },
+    { id: "c12", who: "Анна, Новосибирск", t: "Наша команда проиграла, потому что соперник забил больше голов.", a: 0,
+      why: "Скучно, но безупречно: по правилам игры это и есть достаточное основание." }
+  ]
+};
+
+/* ---------- Реклама между раундами ---------- */
+var ADS = [
+  { brand: "Порошок «Либо-Либо»", text: "Либо белое, либо чёрное. Серого больше не бывает!", small: "Производитель не отвечает за пропавшие оттенки." },
+  { brand: "Конфеты «Куча»", text: "Одна конфета — не куча. Ещё одна — тоже не куча. Ешьте с чистой совестью!", small: "Стоматологи с рассуждением не согласны." },
+  { brand: "Банк «Основание»", text: "Кредит под одно условие: объясните, зачем он вам. «Потому что надо» не принимаем.", small: "Ставка зависит от убедительности." }
+];
+
+/* ---------- Супер-игра ---------- */
+var SUPER = {
+  title: "Супер-игра",
+  sub: "Три парадокса за миллион",
+  rule: "Каждый вопрос супер-игры стоит 2 балла — это 40 000 ₽ на табло. Сначала разыграйте парадокс руками, потом отвечайте.",
+  items: [
+    { id: "s1", kind: "exam", title: "Неожиданная контрольная",
+      who: "Ольга Викторовна, преподаватель, и Миша Ершов, студент",
+      story: "Пятница. Ольга Викторовна объявляет: «На следующей неделе, с понедельника по пятницу, будет контрольная. В какой день — до самого утра вы знать не будете». Миша Ершов хмыкает: «Значит, её не будет вовсе». И объясняет почему.",
+      steps: [
+        { day: 4, t: "Пятница отпадает. Если до четверга контрольной не было, в четверг вечером мы будем знать, что она в пятницу. Какая уж тут неожиданность. Вычеркните пятницу." },
+        { day: 3, t: "Теперь последний возможный день — четверг. Но тогда в среду вечером мы будем знать, что она в четверг. Вычеркните четверг." },
+        { day: 2, t: "Тем же способом отпадает среда. Вычеркните среду." },
+        { day: 1, t: "И вторник. Вычеркните вторник." },
+        { day: 0, t: "Остаётся понедельник, но о нём мы знаем уже в пятницу. Вычеркните понедельник. Контрольной не будет, готовиться незачем." }
+      ],
+      twist: "Неделя. Понедельник — тихо. Вторник — тихо. Среда, девять утра: Ольга Викторовна раздаёт листы. Миша этого не ожидал.",
+      qs: [
+        { q: "Где ошибся Миша?",
+          o: ["Вычёркивая дни, он опирался на то, что объявление истинно, а вывел, что оно ложно. Значит, опираться на него он уже не мог",
+              "Ошибки не было: Ольга Викторовна нарушила слово",
+              "Он неправильно посчитал дни недели",
+              "Ошибся, что вообще поверил преподавателю"], a: 0,
+          why: "Рассуждение Миши подрубает собственную опору. Как только он «доказал», что контрольной не будет, у него пропало основание считать её неожиданность невозможной." },
+        { q: "Сдержала ли Ольга Викторовна слово?",
+          o: ["Да: контрольная была, и никто не знал день заранее", "Нет: она нарушила обещание", "Нельзя сказать: третьего не дано", "Нет: Миша доказал, что так не бывает"], a: 0,
+          why: "Объявление сбылось целиком: контрольная прошла на той неделе и оказалась неожиданной — в том числе благодаря рассуждению Миши." }
+      ] },
+    { id: "s2", kind: "card", title: "Карточка Журдена",
+      who: "Лена Соколова, первокурсница",
+      story: "Лене вручили карточку. На одной стороне написано: «Надпись на обороте истинна». На другой: «Надпись на обороте ложна». Попробуйте приписать стороне А истинность — и посмотрите, что выйдет. Потом ложность.",
+      a: "Надпись на обороте истинна",
+      b: "Надпись на обороте ложна",
+      qs: [
+        { q: "Что получается при каждом варианте?",
+          o: ["Противоречие в обоих случаях: не подходит ни «истинна», ни «ложна»", "А истинна, Б ложна", "А ложна, Б истинна", "Обе надписи истинны"], a: 0,
+          why: "Допустили, что А истинна, — пришли к тому, что А ложна. Допустили, что ложна, — пришли к тому, что истинна." },
+        { q: "Почему здесь буксует закон исключённого третьего?",
+          o: ["Надписи говорят только друг о друге, по кругу, и истинность им не на чем держаться", "Закон исключённого третьего вообще неверен", "Карточку плохо напечатали", "Одна из надписей — на самом деле вопрос"], a: 0,
+          why: "Это парадокс лжеца, разложенный на две стороны. Высказывание, которое ссылается только само на себя, не о чем проверять." }
+      ] },
+    { id: "s3", kind: "berry", title: "Парадокс Берри",
+      who: "Костя Лаптев, аспирант",
+      story: "Костя пишет на доске фразу и говорит: «Любое число либо можно назвать фразой короче двадцати слов, либо нельзя. Возьмём наименьшее из тех, что нельзя». Посчитайте слова в его фразе — нажимайте на каждое.",
+      phrase: ["Наименьшее", "натуральное", "число,", "которое", "нельзя", "назвать", "фразой", "короче", "двадцати", "слов"],
+      qs: [
+        { q: "Что не так?",
+          o: ["Фраза из десяти слов называет число, которое по определению нельзя назвать фразой короче двадцати слов", "Таких чисел не существует", "В фразе на самом деле больше двадцати слов", "Ошибки нет: число названо правильно"], a: 0,
+          why: "Фраза сама стала названием числа — и короче двадцати слов. Определение опровергает само себя." },
+        { q: "В чём источник парадокса?",
+          o: ["Понятие «назвать» не определено: фраза говорит обо всех способах назвать число, включая саму себя", "Двадцать — слишком маленькое число", "Натуральных чисел бесконечно много", "В русском языке слова длиннее, чем в английском"], a: 0,
+          why: "Закон тождества требует, чтобы понятие было определённым. «Назвать» здесь расплывается и захватывает саму фразу." }
+      ] }
+  ]
+};
+
+var MARKS = [[5, 85, "Отлично"], [4, 70, "Хорошо"], [3, 50, "Удовлетворительно"], [2, 0, "Неудовлетворительно"]];
+
+/* ============================================================
+   Движок викторины. ES5, iOS Safari.
+   ============================================================ */
+var KEY = "tretego-ne-dano-v1";
+var app = document.getElementById("app");
+
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]; }); }
+function hashStr(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function shuffle(arr, r) { var a = arr.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(r() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function range(n) { var a = []; for (var i = 0; i < n; i++) a.push(i); return a; }
+function order(id, n) { return shuffle(range(n), rng((S.seed ^ hashStr(id)) >>> 0)); }
+function fmt(n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " "); }
+var LET = ["A", "B", "C", "D", "E"];
+
+/* ---------- состояние ---------- */
+var S = load();
+function load() { try { var r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; } catch (e) { return null; } }
+function save() { try { if (S) localStorage.setItem(KEY, JSON.stringify(S)); else localStorage.removeItem(KEY); } catch (e) { } }
+var draft = { name: "", group: "", err: "" };
+var ui = { pwErr: "", reset: false };
+
+/* ---------- сценарий ---------- */
+var STEPS = null;
+function buildSteps() {
+  var r = rng(S.seed >>> 0), st = [];
+  st.push({ type: "intro" });
+  st.push({ type: "round", n: 1 });
+  shuffle(R1.items, r).forEach(function (it) { st.push({ type: "r1", it: it }); });
+  st.push({ type: "ad", i: 0, after: 1 });
+  st.push({ type: "round", n: 2 });
+  R2.guests.forEach(function (g) { st.push({ type: "guest", g: g }); });
+  st.push({ type: "ad", i: 1, after: 2 });
+  st.push({ type: "round", n: 3 });
+  shuffle(R3.calls, r).forEach(function (c) { st.push({ type: "call", c: c }); });
+  st.push({ type: "ad", i: 2, after: 3 });
+  st.push({ type: "round", n: 4 });
+  SUPER.items.forEach(function (s) { st.push({ type: "super", s: s }); });
+  st.push({ type: "final" });
+  return st;
+}
+function steps() { return STEPS || (STEPS = buildSteps()); }
+
+/* ---------- баллы ---------- */
+function ptsR1(it) {
+  var a = S.ans[it.id]; if (!a) return 0;
+  var want = it.third ? "third" : "none";
+  if (a.v !== want) return 0;
+  return it.third ? 1 + (a.t === 0 ? 1 : 0) : 1;
+}
+function ptsGuest(g) { var a = S.ans[g.id] || []; return g.qs.reduce(function (n, q, i) { return n + (a[i] === q.a ? 1 : 0); }, 0); }
+function ptsCall(c) { return S.ans[c.id] === c.a ? 1 : 0; }
+function ptsSuper(s) { var a = (S.ans[s.id] || {}).q || []; return s.qs.reduce(function (n, q, i) { return n + (a[i] === q.a ? 2 : 0); }, 0); }
+function maxR1() { return R1.items.reduce(function (n, it) { return n + (it.third ? 2 : 1); }, 0); }
+function totals() {
+  var t = { r1: 0, r2: 0, r3: 0, sp: 0 };
+  R1.items.forEach(function (x) { t.r1 += ptsR1(x); });
+  R2.guests.forEach(function (x) { t.r2 += ptsGuest(x); });
+  R3.calls.forEach(function (x) { t.r3 += ptsCall(x); });
+  SUPER.items.forEach(function (x) { t.sp += ptsSuper(x); });
+  t.max = { r1: maxR1(), r2: R2.guests.length * 2, r3: R3.calls.length, sp: SUPER.items.length * 4 };
+  t.sum = t.r1 + t.r2 + t.r3 + t.sp;
+  t.all = t.max.r1 + t.max.r2 + t.max.r3 + t.max.sp;
+  t.pct = Math.round(t.sum / t.all * 100);
+  for (var i = 0; i < MARKS.length; i++) if (t.pct >= MARKS[i][1]) { t.mark = MARKS[i][0]; t.word = MARKS[i][2]; break; }
+  return t;
+}
+function money() { return totals().sum * RUB_PER_POINT; }
+
+/* ---------- готовность шага ---------- */
+function stepDone(st) {
+  if (st.type === "r1") {
+    var a = S.ans[st.it.id]; if (!a || !a.v) return false;
+    if (a.v === "third" && st.it.third) return a.t != null;
+    return true;
+  }
+  if (st.type === "guest") { var g = S.ans[st.g.id] || []; return g.length === st.g.qs.length && g[g.length - 1] != null; }
+  if (st.type === "call") return S.ans[st.c.id] != null;
+  if (st.type === "super") { var s = (S.ans[st.s.id] || {}).q || []; return s.length === st.s.qs.length && s[s.length - 1] != null; }
+  return true;
+}
+
+/* ---------- графика ---------- */
+var ICONS = {
+  host: '<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="17" r="9" fill="#FFE2C6"/><path d="M14 13c2-7 18-7 20 0-3-3-17-3-20 0z" fill="#2B1A12"/><path d="M8 46c1-10 7-15 16-15s15 5 16 15z" fill="#1E2B6E"/><path d="M18 32l6 4 6-4-1 5-5-2-5 2z" fill="#F6B800"/><rect x="34" y="28" width="4" height="12" rx="2" fill="#8A93B8"/><circle cx="36" cy="27" r="3.5" fill="#C9CEE3"/></svg>',
+  scissors: '<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="16" cy="33" r="6" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="32" cy="33" r="6" fill="none" stroke="currentColor" stroke-width="3"/><path d="M19 28L33 9M29 28L15 9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+  key: '<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="16" cy="24" r="8" fill="none" stroke="currentColor" stroke-width="3"/><path d="M24 24h18M36 24v6M41 24v5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
+  wheat: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 44V10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><g fill="currentColor"><ellipse cx="19" cy="16" rx="3.5" ry="6" transform="rotate(-30 19 16)"/><ellipse cx="29" cy="16" rx="3.5" ry="6" transform="rotate(30 29 16)"/><ellipse cx="19" cy="26" rx="3.5" ry="6" transform="rotate(-30 19 26)"/><ellipse cx="29" cy="26" rx="3.5" ry="6" transform="rotate(30 29 26)"/><ellipse cx="24" cy="8" rx="3" ry="5"/></g></svg>',
+  plate: '<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="26" r="13" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="24" cy="26" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 8v12M10 8v12M6 14h4M8 20v22M42 8c-4 2-4 10 0 12v22" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>',
+  wrench: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M30 8a9 9 0 0 0-8 12L9 33a4 4 0 0 0 6 6l13-13a9 9 0 0 0 12-8l-6 2-4-4z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/></svg>',
+  phone: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M14 6h8l3 10-5 3a24 24 0 0 0 9 9l3-5 10 3v8a4 4 0 0 1-4 4C21 38 10 27 10 10a4 4 0 0 1 4-4z" fill="currentColor"/></svg>'
+};
+function hostLine(text, mood) {
+  return '<div class="host"><span class="av">' + ICONS.host + '</span><div class="bubble' + (mood ? " " + mood : "") +
+    '"><b>' + HOST + '</b><p>' + esc(text) + '</p></div></div>';
+}
+var PROMPTS = ["Внимание, вопрос!", "Следующий вопрос!", "Не торопитесь.", "А вот это интересно.", "Смотрим внимательно.", "Студия замерла.", "Вопрос с подвохом. Или без?"];
+
+/* ---------- плашки ответов ---------- */
+function plates(opts, ord, chosen, correct, act, extra) {
+  var done = chosen != null;
+  return '<div class="plates">' + ord.map(function (k, pos) {
+    var cls = "plate";
+    if (done) { if (k === correct) cls += " ok"; else if (k === chosen) cls += " bad"; else cls += " off"; }
+    return '<button class="' + cls + '" data-act="' + act + '" data-k="' + k + '"' + (extra || "") + (done ? " disabled" : "") +
+      '><span><em>' + LET[pos] + '</em>' + esc(opts[k]) + '</span></button>';
+  }).join("") + '</div>';
+}
+
+/* ---------- экраны ---------- */
+function minutes() { return Math.floor(((S.finishedAt || Date.now()) - S.startedAt) / 60000); }
+function roundOf(st) {
+  if (st.type === "r1" || (st.type === "round" && st.n === 1)) return "Раунд 1";
+  if (st.type === "guest" || (st.type === "round" && st.n === 2)) return "Раунд 2";
+  if (st.type === "call" || (st.type === "round" && st.n === 3)) return "Раунд 3";
+  if (st.type === "super" || (st.type === "round" && st.n === 4)) return "Супер-игра";
+  if (st.type === "ad") return "Реклама";
+  return "Эфир";
+}
+function topBar(st) {
+  var all = steps().length, pct = Math.round(S.pos / (all - 1) * 100);
+  return '<header class="top"><div class="wrap top-in">' +
+    '<span class="logo">Третьего<br>не дано</span>' +
+    '<span class="tb-r"><span class="money" id="money">' + fmt(money()) + ' ₽</span>' +
+    '<span class="meta">' + roundOf(st) + ' · <span id="clock">' + minutes() + '/' + MINUTES + ' мин</span></span></span>' +
+    '</div><div class="prog"><i style="width:' + pct + '%"></i></div></header>';
+}
+function nextBtn(st, label) {
+  var ok = stepDone(st);
+  return '<div class="bar"><div class="wrap"><button class="btn" data-act="next"' + (ok ? "" : " disabled") + '>' +
+    esc(label || "Дальше") + '</button></div></div>';
+}
+
+function render() {
+  if (!S) return renderStart();
+  var st = steps()[S.pos], body = "";
+  if (st.type === "intro") body = screenIntro();
+  else if (st.type === "round") body = screenRound(st);
+  else if (st.type === "r1") body = screenR1(st);
+  else if (st.type === "ad") body = screenAd(st);
+  else if (st.type === "guest") body = screenGuest(st);
+  else if (st.type === "call") body = screenCall(st);
+  else if (st.type === "super") body = screenSuper(st);
+  else return renderFinal();
+  app.innerHTML = topBar(st) + '<main class="wrap stage">' + body + '</main>' +
+    nextBtn(st, st.type === "intro" ? "Начинаем!" : st.type === "round" ? "Поехали" : st.type === "ad" ? "Вернуться в эфир" : null);
+  var m = money(), el = document.getElementById("money");
+  if (el && lastMoney != null && m > lastMoney) el.className = "money bump";
+  lastMoney = m;
+}
+var lastMoney = null;
+
+function renderStart() {
+  app.innerHTML =
+    '<section class="cover"><div class="wrap">' +
+      '<span class="onair">В эфире</span>' +
+      '<h1 class="show">Третьего<br>не дано</h1>' +
+      '<p class="tag">Телевикторина о законе исключённого третьего, парадоксах и законе достаточного основания</p>' +
+      '<div class="facts"><span><b>4</b>раунда</span><span><b>45</b>минут</span><span><b>1&nbsp;000&nbsp;000</b>₽ на кону</span></div>' +
+    '</div></section>' +
+    '<main class="wrap"><div class="card form">' +
+      '<label class="field"><span>Фамилия и имя участника</span><input id="fName" autocomplete="name" value="' + esc(draft.name) + '"></label>' +
+      '<label class="field"><span>Группа</span><input id="fGroup" value="' + esc(draft.group) + '"></label>' +
+      '<p class="err">' + esc(draft.err) + '</p>' +
+      '<button class="btn" data-act="start">Выйти в студию</button>' +
+    '</div></main>';
+  var n = document.getElementById("fName"), g = document.getElementById("fGroup");
+  n.addEventListener("input", function () { draft.name = n.value; });
+  g.addEventListener("input", function () { draft.group = g.value; });
+}
+
+function screenIntro() {
+  return hostLine(INTRO.hello) +
+    '<div class="card"><h2>Правила эфира</h2>' + INTRO.rules.map(function (r) {
+      return '<div class="rule"><b>' + esc(r[0]) + '</b><span>' + esc(r[1]) + '</span></div>';
+    }).join("") + '</div>' +
+    '<p class="hint">Участник: ' + esc(S.name) + (S.group ? ", " + esc(S.group) : "") + '</p>';
+}
+
+function screenRound(st) {
+  if (st.n === 4) {
+    return '<div class="round super"><span class="rn">Финал</span><h2 class="rt">' + esc(SUPER.title) + '</h2><span class="law">' + esc(SUPER.sub) + '</span></div>' +
+      hostLine("Свет в студии гаснет. Остаются трое. Три парадокса, которых вы ещё не видели.") +
+      '<div class="card"><p>' + esc(SUPER.rule) + '</p></div>';
+  }
+  var R = [R1, R2, R3][st.n - 1];
+  return '<div class="round r' + st.n + '"><span class="rn">Раунд ' + st.n + '</span><h2 class="rt">' + esc(R.title) + '</h2><span class="law">' + esc(R.law) + '</span></div>' +
+    '<div class="card"><p>' + esc(R.rule) + '</p></div>';
+}
+
+function screenR1(st) {
+  var it = st.it, a = S.ans[it.id] || {}, idx = R1.items.indexOf(it);
+  var want = it.third ? "third" : "none";
+  var h = "";
+  if (!a.v) h += hostLine(PROMPTS[idx % PROMPTS.length] + " " + R1.ask);
+  h += '<div class="card q"><p class="qt">' + esc(it.t) + '</p></div>';
+  var V = ["Третьего не дано", "Третье есть"], vk = { none: 0, third: 1 }, vback = ["none", "third"];
+  h += plates(V, [0, 1], a.v ? vk[a.v] : null, vk[want], "r1v");
+  if (a.v) {
+    if (a.v !== want) {
+      h += hostLine("Увы, мимо. " + it.why + (it.third ? " Третье здесь такое: " + it.third[0].charAt(0).toLowerCase() + it.third[0].slice(1) + "." : ""), "bad");
+    } else if (!it.third) {
+      h += hostLine("Совершенно верно! " + it.why, "ok");
+    } else {
+      h += '<p class="sub-q">Верно, третье есть. Какое?</p>';
+      h += plates(it.third, order(it.id, it.third.length), a.t, 0, "r1t");
+      if (a.t != null) h += hostLine((a.t === 0 ? "Абсолютно точно! " : "Почти! Третье другое. ") + it.why, a.t === 0 ? "ok" : "bad");
+    }
+  }
+  return h;
+}
+
+function screenAd(st) {
+  var ad = ADS[st.i], t = totals();
+  var banked = st.after === 1 ? t.r1 : st.after === 2 ? t.r1 + t.r2 : t.r1 + t.r2 + t.r3;
+  return '<div class="banked"><span>Несгораемая сумма</span><b>' + fmt(banked * RUB_PER_POINT) + ' ₽</b></div>' +
+    '<div class="ad"><span class="ad-chip">Реклама</span><h2 class="ad-brand">' + esc(ad.brand) + '</h2>' +
+    '<p class="ad-text">' + esc(ad.text) + '</p><p class="ad-small">' + esc(ad.small) + '</p></div>';
+}
+
+function screenGuest(st) {
+  var g = st.g, a = S.ans[g.id] || [];
+  var h = '<div class="guest"><span class="gav g-' + g.icon + '">' + ICONS[g.icon] + '</span>' +
+    '<div><b>' + esc(g.name) + '</b><span>' + esc(g.role) + '</span></div></div>' +
+    '<div class="card q quote"><p class="qt">«' + esc(g.say) + '»</p></div>';
+  for (var i = 0; i < g.qs.length; i++) {
+    if (i > 0 && a[i - 1] == null) break;
+    var q = g.qs[i];
+    h += '<p class="sub-q">' + (i + 1) + '. ' + esc(q.q) + '</p>';
+    h += plates(q.o, order(g.id + i, q.o.length), a[i], q.a, "gq", ' data-i="' + i + '"');
+    if (a[i] != null) h += hostLine((a[i] === q.a ? "Браво! " : "Увы. ") + q.why, a[i] === q.a ? "ok" : "bad");
+  }
+  return h;
+}
+
+function screenCall(st) {
+  var c = st.c, a = S.ans[c.id], idx = R3.calls.indexOf(c);
+  var h = '<div class="call"><span class="ring">' + ICONS.phone + '</span><span>Звонок в студию · <b>' + esc(c.who) + '</b></span></div>' +
+    '<div class="card q quote"><p class="qt">«' + esc(c.t) + '»</p></div>' +
+    '<p class="sub-q">' + esc(R3.ask) + '</p>';
+  h += plates(R3.cats, range(R3.cats.length), a, c.a, "cq");
+  if (a != null) h += hostLine((a === c.a ? "Именно! " : "Нет, тут другое: «" + R3.cats[c.a] + "». ") + c.why, a === c.a ? "ok" : "bad");
+  else if (idx % 3 === 0) h = hostLine("У нас звонок! Слушаем вас.") + h;
+  return h;
+}
+
+/* ---------- супер-игра ---------- */
+var DAYS = ["Пн", "Вт", "Ср", "Чт", "Пт"];
+function screenSuper(st) {
+  var s = st.s, a = S.ans[s.id] || {}, played = superPlayed(s, a);
+  var h = '<div class="sp-head"><span class="rn">Супер-игра · ' + (SUPER.items.indexOf(s) + 1) + ' из 3</span><h2 class="rt">' + esc(s.title) + '</h2>' +
+    '<span class="law">' + esc(s.who) + '</span></div>' +
+    '<div class="card"><p>' + esc(s.story) + '</p></div>';
+
+  if (s.kind === "exam") {
+    var crossed = a.cross || [], stepI = crossed.length, done5 = stepI >= 5;
+    h += '<div class="cal">' + DAYS.map(function (d, i) {
+      var x = crossed.indexOf(i) >= 0, target = !done5 && s.steps[stepI].day === i;
+      var exam = a.week && i === 2, quiet = a.week && i < 2;
+      return '<button class="day' + (x ? " x" : "") + (target ? " target" : "") + (exam ? " exam" : "") + (quiet ? " quiet" : "") +
+        '" data-act="cross" data-d="' + i + '"' + (done5 ? " disabled" : "") + '><b>' + d + '</b>' +
+        (exam ? '<em>сюрприз</em>' : quiet ? '<em>тихо</em>' : x ? '<em>нет</em>' : '<em>&nbsp;</em>') + '</button>';
+    }).join("") + '</div>';
+    if (!done5) h += hostLine("Миша: «" + s.steps[stepI].t + "»");
+    else if (!a.week) h += hostLine("Миша: «Контрольной не будет. Готовиться незачем». Посмотрим.") +
+      '<div class="center"><button class="btn ghost" data-act="week">Наступает неделя</button></div>';
+    else h += '<div class="card twist"><p>' + esc(s.twist) + '</p></div>';
+  }
+
+  if (s.kind === "card") {
+    var tr = a.tr || {};
+    h += '<div class="jcard"><div class="side"><span>Сторона А</span><p>«' + esc(s.a) + '»</p></div>' +
+      '<div class="side b"><span>Сторона Б</span><p>«' + esc(s.b) + '»</p></div></div>' +
+      '<div class="tries"><button class="btn ghost' + (tr.t ? " used" : "") + '" data-act="try" data-v="t">Пусть А истинна</button>' +
+      '<button class="btn ghost' + (tr.f ? " used" : "") + '" data-act="try" data-v="f">Пусть А ложна</button></div>';
+    if (tr.t) h += chain(["А истинна", "значит, Б истинна — так говорит А", "Б говорит: «А ложна»", "А ложна — а мы начали с того, что истинна"]);
+    if (tr.f) h += chain(["А ложна", "значит, Б ложна — А говорила, что она истинна", "Б говорит «А ложна», и это неправда", "А истинна — а мы начали с того, что ложна"]);
+    if (!(tr.t && tr.f)) h += '<p class="hint center">Проверьте оба варианта.</p>';
+  }
+
+  if (s.kind === "berry") {
+    var tapped = a.w || [];
+    h += '<div class="words">' + s.phrase.map(function (w, i) {
+      var k = tapped.indexOf(i);
+      return '<button class="word' + (k >= 0 ? " on" : "") + '" data-act="word" data-w="' + i + '">' +
+        (k >= 0 ? '<i>' + (k + 1) + '</i>' : '') + esc(w) + '</button>';
+    }).join("") + '</div>' +
+      '<div class="counter"><span>Слов</span><b>' + tapped.length + '</b><span>из двадцати разрешённых</span></div>';
+    if (tapped.length === s.phrase.length) h += hostLine("Десять слов. Меньше двадцати. Этой фразой мы только что назвали то самое число, которое назвать так нельзя.");
+  }
+
+  if (played) {
+    var qa = a.q || [];
+    for (var i = 0; i < s.qs.length; i++) {
+      if (i > 0 && qa[i - 1] == null) break;
+      var q = s.qs[i];
+      h += '<p class="sub-q">' + (i + 1) + '. ' + esc(q.q) + ' <span class="pts">2 балла</span></p>';
+      h += plates(q.o, order(s.id + i, q.o.length), qa[i], q.a, "sq", ' data-i="' + i + '"');
+      if (qa[i] != null) h += hostLine((qa[i] === q.a ? "Сорок тысяч на табло! " : "Увы, мимо. ") + q.why, qa[i] === q.a ? "ok" : "bad");
+    }
+  }
+  return h;
+}
+function superPlayed(s, a) {
+  if (s.kind === "exam") return !!a.week;
+  if (s.kind === "card") return !!(a.tr && a.tr.t && a.tr.f);
+  if (s.kind === "berry") return (a.w || []).length === s.phrase.length;
+  return true;
+}
+function chain(lines) {
+  return '<ol class="chain">' + lines.map(function (l, i) {
+    return '<li' + (i === lines.length - 1 ? ' class="boom"' : '') + '>' + esc(l) + '</li>';
+  }).join("") + '</ol>';
+}
+
+/* ---------- финал ---------- */
+function renderFinal() {
+  if (!S.finishedAt) { S.finishedAt = Date.now(); save(); }
+  var t = totals(), d = new Date(S.finishedAt);
+  var miss = mistakes();
+  var h = '<section class="final' + (t.mark === 5 ? " gold" : "") + '"><div class="wrap">' +
+    '<span class="onair">Эфир окончен</span>' +
+    '<p class="won">Выигрыш</p><p class="sum">' + fmt(t.sum * RUB_PER_POINT) + ' ₽</p>' +
+    '<div class="grade"><b>' + t.mark + '</b><span>' + t.word + '</span></div>' +
+    '<p class="pts-line">' + t.sum + ' из ' + t.all + ' баллов · ' + t.pct + '% · ' + minutes() + ' мин</p>' +
+    '</div></section><main class="wrap stage">' +
+    '<div class="card"><h2>По раундам</h2>' +
+      bar("«Либо — либо»", t.r1, t.max.r1) + bar("«Гость студии»", t.r2, t.max.r2) +
+      bar("«Звонок в студию»", t.r3, t.max.r3) + bar("Супер-игра", t.sp, t.max.sp) +
+    '</div>' +
+    (miss.length ? '<details class="card miss"><summary>Где были ошибки · ' + miss.length + '</summary>' +
+      miss.map(function (m) { return '<div class="mrow"><span class="mk">' + esc(m.where) + '</span><p>' + esc(m.t) + '</p><p class="hint">' + esc(m.why) + '</p></div>'; }).join("") +
+      '</details>' : '<div class="card"><p>Ни одной ошибки. Студия аплодирует стоя.</p></div>') +
+    '<p class="hint center">' + esc(S.name) + (S.group ? ", " + esc(S.group) : "") + ' · ' + d.toLocaleDateString("ru-RU") + ' ' +
+      d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }) + '</p>' +
+    (ui.reset
+      ? '<div class="card"><label class="field"><span>Пароль преподавателя</span><input id="pw" type="password" autocomplete="off"></label>' +
+        '<p class="err">' + esc(ui.pwErr) + '</p><div class="row2"><button class="btn" data-act="reset2">Начать заново</button>' +
+        '<button class="btn ghost" data-act="noreset">Отмена</button></div></div>'
+      : '<div class="center"><button class="link" data-act="reset">Новая попытка (нужен пароль преподавателя)</button></div>') +
+    '</main>';
+  app.innerHTML = h;
+}
+function bar(name, got, max) {
+  return '<div class="rbar"><span>' + esc(name) + '</span><b>' + got + ' / ' + max + '</b><i><s style="width:' + Math.round(got / max * 100) + '%"></s></i></div>';
+}
+function mistakes() {
+  var out = [];
+  R1.items.forEach(function (it) {
+    var want = it.third ? 2 : 1; if (ptsR1(it) < want) out.push({ where: "Раунд 1", t: it.t, why: it.why });
+  });
+  R2.guests.forEach(function (g) {
+    var a = S.ans[g.id] || [];
+    g.qs.forEach(function (q, i) { if (a[i] !== q.a) out.push({ where: "Раунд 2 · " + g.name, t: q.q, why: q.why }); });
+  });
+  R3.calls.forEach(function (c) { if (S.ans[c.id] !== c.a) out.push({ where: "Раунд 3 · " + c.who, t: c.t, why: "Верно: " + R3.cats[c.a] + ". " + c.why }); });
+  SUPER.items.forEach(function (s) {
+    var a = (S.ans[s.id] || {}).q || [];
+    s.qs.forEach(function (q, i) { if (a[i] !== q.a) out.push({ where: "Супер-игра · " + s.title, t: q.q, why: q.why }); });
+  });
+  return out;
+}
+
+/* ---------- действия ---------- */
+document.addEventListener("click", function (e) {
+  var el = e.target.closest("[data-act]");
+  if (!el || el.disabled) return;
+  var act = el.getAttribute("data-act"), top = false;
+
+  if (act === "start") {
+    if (!draft.name.trim()) { draft.err = "Представьтесь, пожалуйста: фамилия и имя."; renderStart(); return; }
+    S = { name: draft.name.trim(), group: draft.group.trim(), seed: (Math.random() * 4294967296) >>> 0,
+      startedAt: Date.now(), pos: 0, ans: {} };
+    STEPS = null; top = true;
+  } else if (!S) return;
+  else {
+    var st = steps()[S.pos], k = +el.getAttribute("data-k");
+    if (act === "next" && stepDone(st)) { S.pos = Math.min(S.pos + 1, steps().length - 1); top = true; }
+    if (act === "r1v") { var vb = ["none", "third"]; S.ans[st.it.id] = { v: vb[k], t: null }; }
+    if (act === "r1t") { S.ans[st.it.id].t = k; }
+    if (act === "gq") { var gi = +el.getAttribute("data-i"), ga = S.ans[st.g.id] || []; if (ga[gi] == null) { ga[gi] = k; S.ans[st.g.id] = ga; } }
+    if (act === "cq") { if (S.ans[st.c.id] == null) S.ans[st.c.id] = k; }
+    if (act === "sq") { var si = +el.getAttribute("data-i"), sa = S.ans[st.s.id] || {}; sa.q = sa.q || []; if (sa.q[si] == null) sa.q[si] = k; S.ans[st.s.id] = sa; }
+    if (act === "cross") {
+      var ca = S.ans[st.s.id] || {}; ca.cross = ca.cross || [];
+      var d = +el.getAttribute("data-d"), need = st.s.steps[ca.cross.length];
+      if (need && need.day === d) { ca.cross.push(d); S.ans[st.s.id] = ca; }
+      else { el.classList.remove("nope"); void el.offsetWidth; el.classList.add("nope"); return; }
+    }
+    if (act === "week") { var wa = S.ans[st.s.id] || {}; wa.week = true; S.ans[st.s.id] = wa; }
+    if (act === "try") { var ta = S.ans[st.s.id] || {}; ta.tr = ta.tr || {}; ta.tr[el.getAttribute("data-v")] = true; S.ans[st.s.id] = ta; }
+    if (act === "word") {
+      var wa2 = S.ans[st.s.id] || {}; wa2.w = wa2.w || [];
+      var wi = +el.getAttribute("data-w"); if (wa2.w.indexOf(wi) < 0) wa2.w.push(wi); S.ans[st.s.id] = wa2;
+    }
+    if (act === "reset") ui.reset = true;
+    if (act === "noreset") { ui.reset = false; ui.pwErr = ""; }
+    if (act === "reset2") {
+      var v = ((document.getElementById("pw") || {}).value || "").trim().toLowerCase();
+      if (hashStr(v) === PASS_HASH) { S = null; STEPS = null; ui.reset = false; ui.pwErr = ""; draft = { name: "", group: "", err: "" }; save(); render(); window.scrollTo(0, 0); return; }
+      ui.pwErr = "Неверный пароль.";
+    }
+  }
+  save(); render();
+  if (top) window.scrollTo(0, 0);
+});
+
+setInterval(function () {
+  var c = document.getElementById("clock");
+  if (c && S && !S.finishedAt) c.textContent = minutes() + "/" + MINUTES + " мин";
+}, 20000);
+
+render();
+
+</script>
+</body>
+</html>
