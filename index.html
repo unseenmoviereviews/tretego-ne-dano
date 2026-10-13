@@ -225,6 +225,10 @@ p{margin:0 0 8px}
 @media (prefers-reduced-motion:reduce){.ring,.money.bump,.day.nope{animation:none}.day{transition:none}}
 @media (max-width:360px){.rule b{flex-basis:92px}.q .qt{font-size:17px}.day em{font-size:9.5px}.day b{font-size:14px}.cal{gap:5px}}
 
+.acode{display:flex;flex-direction:column;align-items:center;width:max-content;margin:14px auto 0;padding:8px 18px;border:2px dashed rgba(255,194,26,.7);border-radius:12px;background:rgba(0,0,0,.25)}
+.acode span{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.75)}
+.acode b{font-size:30px;letter-spacing:.12em;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1.15}
+
 </style>
 </head>
 <body>
@@ -767,9 +771,11 @@ function chain(lines) {
   }).join("") + '</ol>';
 }
 
+function attemptCode() { var n; try { var a = new Uint32Array(1); window.crypto.getRandomValues(a); n = a[0]; } catch (e) { n = Math.floor(Math.random() * 4294967296); } n = 100000 + n % 900000; var s = String(n); return s.slice(0, 3) + " " + s.slice(3); }
 /* ---------- финал ---------- */
 function renderFinal() {
   if (!S.finishedAt) { S.finishedAt = Date.now(); save(); }
+  if (!S.code) { S.code = attemptCode(); save(); }
   var t = totals(), d = new Date(S.finishedAt);
   var miss = mistakes();
   var h = '<section class="final' + (t.mark === 5 ? " gold" : "") + '"><div class="wrap">' +
@@ -777,6 +783,7 @@ function renderFinal() {
     '<p class="won">Выигрыш</p><p class="sum">' + fmt(t.sum * RUB_PER_POINT) + ' ₽</p>' +
     '<div class="grade"><b>' + t.mark + '</b><span>' + t.word + '</span></div>' +
     '<p class="pts-line">' + t.sum + ' из ' + t.all + ' баллов · ' + t.pct + '% · ' + minutes() + ' мин</p>' +
+    '<div class="acode"><span>Код попытки</span><b>' + S.code + '</b></div>' +
     '</div></section><main class="wrap stage">' +
     '<div class="card"><h2>По раундам</h2>' +
       bar("«Либо — либо»", t.r1, t.max.r1) + bar("«Гость студии»", t.r2, t.max.r2) +
@@ -824,7 +831,7 @@ document.addEventListener("click", function (e) {
   if (act === "start") {
     if (!draft.name.trim()) { draft.err = "Представьтесь, пожалуйста: фамилия и имя."; renderStart(); return; }
     S = { name: draft.name.trim(), group: draft.group.trim(), seed: (Math.random() * 4294967296) >>> 0,
-      startedAt: Date.now(), pos: 0, ans: {} };
+      startedAt: Date.now(), pos: 0, ans: {}, code: attemptCode() };
     STEPS = null; top = true;
   } else if (!S) return;
   else {
