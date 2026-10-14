@@ -225,15 +225,141 @@ p{margin:0 0 8px}
 @media (prefers-reduced-motion:reduce){.ring,.money.bump,.day.nope{animation:none}.day{transition:none}}
 @media (max-width:360px){.rule b{flex-basis:92px}.q .qt{font-size:17px}.day em{font-size:9.5px}.day b{font-size:14px}.cal{gap:5px}}
 
-.acode{display:flex;flex-direction:column;align-items:center;width:max-content;margin:14px auto 0;padding:8px 18px;border:2px dashed rgba(255,194,26,.7);border-radius:12px;background:rgba(0,0,0,.25)}
-.acode span{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.75)}
-.acode b{font-size:30px;letter-spacing:.12em;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1.15}
 
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script>
+/* ===== ядро: код проверки (общее для работ и страницы преподавателя) ===== */
+var G_K = [1116352408, 1899447441, 3049323471, 3921009573, 961987163, 1508970993, 2453635748, 2870763221, 3624381080, 310598401, 607225278, 1426881987, 1925078388, 2162078206, 2614888103, 3248222580, 3835390401, 4022224774, 264347078, 604807628, 770255983, 1249150122, 1555081692, 1996064986, 2554220882, 2821834349, 2952996808, 3210313671, 3336571891, 3584528711, 113926993, 338241895, 666307205, 773529912, 1294757372, 1396182291, 1695183700, 1986661051, 2177026350, 2456956037, 2730485921, 2820302411, 3259730800, 3345764771, 3516065817, 3600352804, 4094571909, 275423344, 430227734, 506948616, 659060556, 883997877, 958139571, 1322822218, 1537002063, 1747873779, 1955562222, 2024104815, 2227730452, 2361852424, 2428436474, 2756734187, 3204031479, 3329325298];
+var G_H = [1779033703, 3144134277, 1013904242, 2773480762, 1359893119, 2600822924, 528734635, 1541459225];
+function gSha256(msg) {
+  var s = unescape(encodeURIComponent(msg)), b = [], i, j;
+  for (i = 0; i < s.length; i++) b.push(s.charCodeAt(i));
+  var bl = b.length * 8; b.push(128);
+  while (b.length % 64 !== 56) b.push(0);
+  b.push(0, 0, 0, 0, (bl >>> 24) & 255, (bl >>> 16) & 255, (bl >>> 8) & 255, bl & 255);
+  var h = G_H.slice(), w = new Array(64);
+  function rr(x, n) { return (x >>> n) | (x << (32 - n)); }
+  for (var o = 0; o < b.length; o += 64) {
+    for (i = 0; i < 16; i++) w[i] = ((b[o + i * 4] << 24) | (b[o + i * 4 + 1] << 16) | (b[o + i * 4 + 2] << 8) | b[o + i * 4 + 3]) | 0;
+    for (i = 16; i < 64; i++) {
+      var s0 = rr(w[i - 15], 7) ^ rr(w[i - 15], 18) ^ (w[i - 15] >>> 3), s1 = rr(w[i - 2], 17) ^ rr(w[i - 2], 19) ^ (w[i - 2] >>> 10);
+      w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0;
+    }
+    var a = h[0], bb = h[1], c = h[2], d = h[3], e = h[4], f = h[5], g = h[6], hh = h[7];
+    for (i = 0; i < 64; i++) {
+      var S1 = rr(e, 6) ^ rr(e, 11) ^ rr(e, 25), ch = (e & f) ^ (~e & g), t1 = (hh + S1 + ch + G_K[i] + w[i]) | 0;
+      var S0 = rr(a, 2) ^ rr(a, 13) ^ rr(a, 22), mj = (a & bb) ^ (a & c) ^ (bb & c), t2 = (S0 + mj) | 0;
+      hh = g; g = f; f = e; e = (d + t1) | 0; d = c; c = bb; bb = a; a = (t1 + t2) | 0;
+    }
+    h[0] = (h[0] + a) | 0; h[1] = (h[1] + bb) | 0; h[2] = (h[2] + c) | 0; h[3] = (h[3] + d) | 0;
+    h[4] = (h[4] + e) | 0; h[5] = (h[5] + f) | 0; h[6] = (h[6] + g) | 0; h[7] = (h[7] + hh) | 0;
+  }
+  var out = "";
+  for (j = 0; j < 8; j++) out += ("00000000" + (h[j] >>> 0).toString(16)).slice(-8);
+  return out;
+}
+var G_SALT = ["2b55ff", "280de1", "77552e", "6f814e"].join("-");
+function gNorm(s) { return String(s || "").toLowerCase().replace(/ё/g, "е").replace(/[^a-zа-я0-9]/g, ""); }
+function gTime(s) { var d = String(s || "").replace(/\D/g, ""); while (d.length < 4) d = "0" + d; return d.slice(-4); }
+function gMakeCode(work, name, group, score, leaves, hhmm) {
+  var msg = G_SALT + "|" + work + "|" + gNorm(name) + "|" + gNorm(group) + "|" + (+score) + "|" + (+leaves) + "|" + gTime(hhmm);
+  var n = parseInt(gSha256(msg).slice(0, 8), 16) % 100000;
+  return ("00000" + n).slice(-5);
+}
+
+/* ===== защита: учёт выходов, запрет копирования, карточка проверки ===== */
+(function () {
+  var st = document.createElement("style");
+  st.textContent =
+    "html,body{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-touch-callout:none}" +
+    "input,textarea{-webkit-user-select:text!important;user-select:text!important}" +
+    "img{-webkit-user-drag:none}@media print{body{display:none!important}}" +
+    ".gchip{display:inline-block;padding:1px 7px;border-radius:999px;border:1px solid rgba(255,255,255,.3);font-size:11px;line-height:16px;font-weight:600;margin-right:6px;white-space:nowrap;color:inherit;opacity:.85}" +
+    ".gchip.hot{background:#E8A317;border-color:#E8A317;color:#1A1204;opacity:1}" +
+    "#gtoast{position:fixed;left:0;right:0;margin:0 auto;width:max-content;top:10px;transform:translateY(-90px);z-index:99999;max-width:88vw;padding:9px 16px;border-radius:12px;background:#E8A317;color:#1A1204;font:600 14px/1.3 -apple-system,system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.45);transition:transform .35s ease;pointer-events:none;text-align:center}" +
+    "#gtoast.on{transform:translateY(0)}.gnote{font-size:13px;line-height:1.4;opacity:.7;margin:10px 0 0;color:inherit}" +
+    ".gcard{margin:14px auto 12px;max-width:380px;padding:14px 14px 12px;border:2px dashed #F2C14E;border-radius:16px;background:rgba(0,0,0,.45);color:#fff;text-align:center}" +
+    ".gc-h{font:600 11px/1 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.22em;text-transform:uppercase;opacity:.8}" +
+    ".gc-code{font:700 46px/1.15 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.18em;color:#FFD36B;margin:6px 0 8px;padding-left:.18em;text-shadow:0 0 18px rgba(255,211,107,.35)}" +
+    ".gc-rows{text-align:left;font-size:14px;border-top:1px solid rgba(255,255,255,.18);padding-top:6px}" +
+    ".gc-rows div{display:flex;justify-content:space-between;gap:12px;padding:3px 0}" +
+    ".gc-rows span{opacity:.7;white-space:nowrap}.gc-rows b{font-weight:600;text-align:right;word-break:break-word}" +
+    ".gc-n{font-size:12px;opacity:.7;margin:8px 0 0!important}";
+  document.head.appendChild(st);
+})();
+function gEsc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function gActive() { return typeof S !== "undefined" && S && !S.fin; }
+function gSave() { try { save(); } catch (e) { } }
+function gLeave() {
+  if (!gActive() || S.away) return;
+  S.leaves = (S.leaves || 0) + 1; S.away = Date.now(); gSave(); gPaint();
+}
+function gBack() {
+  if (typeof S === "undefined" || !S || !S.away || document.hidden) return;
+  var d = Math.max(0, Math.round((Date.now() - S.away) / 1000));
+  var was = gActive();
+  if (was) S.awaySec = (S.awaySec || 0) + d;
+  S.away = 0; gSave(); gPaint();
+  if (was) gToast();
+}
+function gPaint() {
+  var n = (typeof S !== "undefined" && S && S.leaves) || 0, els = document.querySelectorAll(".gchip");
+  for (var i = 0; i < els.length; i++) { els[i].textContent = "⇄ " + n; els[i].className = "gchip" + (n > 0 ? " hot" : ""); }
+}
+function gChip() {
+  if (typeof S === "undefined" || !S) return "";
+  var n = S.leaves || 0;
+  return '<span class="gchip' + (n > 0 ? " hot" : "") + '" title="Выходы со страницы">⇄ ' + n + '</span>';
+}
+var gToastT = 0;
+function gToast() {
+  var t = document.getElementById("gtoast");
+  if (!t) { t = document.createElement("div"); t.id = "gtoast"; document.body.appendChild(t); }
+  t.textContent = "Выход со страницы зафиксирован · всего: " + (S.leaves || 0);
+  void t.offsetWidth; t.className = "on";
+  clearTimeout(gToastT); gToastT = setTimeout(function () { t.className = ""; }, 3500);
+}
+function gFin2(n) { return (n < 10 ? "0" : "") + n; }
+function gFinish(work, score) {
+  if (S.fin) return S.fin;
+  var d = new Date(), hhmm = gFin2(d.getHours()) + ":" + gFin2(d.getMinutes()), lv = S.leaves || 0;
+  S.fin = { t: d.getTime(), hhmm: hhmm, score: score, leaves: lv, away: S.awaySec || 0, code: gMakeCode(work, S.name, S.group, score, lv, hhmm) };
+  S.away = 0; gSave(); return S.fin;
+}
+function gCard() {
+  var f = S.fin, m = Math.floor(f.away / 60), s = f.away % 60;
+  return '<div class="gcard"><div class="gc-h">Код проверки</div><div class="gc-code">' + f.code + '</div><div class="gc-rows">' +
+    '<div><span>Участник</span><b>' + gEsc(S.name) + (S.group ? ", " + gEsc(S.group) : "") + '</b></div>' +
+    '<div><span>Баллы</span><b>' + f.score + '</b></div>' +
+    '<div><span>Выходов со страницы</span><b>' + f.leaves + '</b></div>' +
+    '<div><span>Вне страницы</span><b>' + m + ":" + gFin2(s) + '</b></div>' +
+    '<div><span>Время</span><b>' + f.hhmm + '</b></div></div>' +
+    '<p class="gc-n">Покажите этот экран преподавателю</p></div>';
+}
+function gInit() {
+  function field(t) { return t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA"); }
+  document.addEventListener("visibilitychange", function () { if (document.hidden) gLeave(); else gBack(); });
+  window.addEventListener("blur", gLeave);
+  window.addEventListener("focus", gBack);
+  window.addEventListener("pagehide", gLeave);
+  window.addEventListener("pageshow", gBack);
+  document.addEventListener("copy", function (e) { if (field(e.target)) return; e.preventDefault(); try { e.clipboardData.setData("text/plain", ""); } catch (x) { } });
+  document.addEventListener("cut", function (e) { if (field(e.target)) return; e.preventDefault(); });
+  document.addEventListener("contextmenu", function (e) { if (!field(e.target)) e.preventDefault(); });
+  document.addEventListener("selectstart", function (e) { if (!field(e.target)) e.preventDefault(); });
+  document.addEventListener("dragstart", function (e) { e.preventDefault(); });
+  document.addEventListener("keydown", function (e) {
+    if (!(e.ctrlKey || e.metaKey) || field(e.target)) return;
+    var k = String(e.key || "").toLowerCase();
+    if (k === "a" || k === "c" || k === "x" || k === "s" || k === "p" || k === "u") e.preventDefault();
+  });
+  if (typeof S !== "undefined" && S && S.away) gBack();
+  gPaint();
+}
+
 /* ============================================================
    «ТРЕТЬЕГО НЕ ДАНО». Телевикторина-пародия.
    Тема 2, пара 9: закон исключённого третьего, парадоксы,
@@ -580,7 +706,7 @@ function topBar(st) {
   return '<header class="top"><div class="wrap top-in">' +
     '<span class="logo">Третьего<br>не дано</span>' +
     '<span class="tb-r"><span class="money" id="money">' + fmt(money()) + ' ₽</span>' +
-    '<span class="meta">' + roundOf(st) + ' · <span id="clock">' + minutes() + '/' + MINUTES + ' мин</span></span></span>' +
+    '<span class="meta">' + roundOf(st) + ' · <span id="clock">' + minutes() + '/' + MINUTES + ' мин</span> · ' + gChip() + '</span></span>' +
     '</div><div class="prog"><i style="width:' + pct + '%"></i></div></header>';
 }
 function nextBtn(st, label) {
@@ -619,6 +745,7 @@ function renderStart() {
     '<main class="wrap"><div class="card form">' +
       '<label class="field"><span>Фамилия и имя участника</span><input id="fName" autocomplete="name" value="' + esc(draft.name) + '"></label>' +
       '<label class="field"><span>Группа</span><input id="fGroup" value="' + esc(draft.group) + '"></label>' +
+      '<p class="gnote">Выходы со страницы (смена вкладки или приложения) считаются, счётчик ⇄ виден вам и преподавателю. Текст на странице не копируется.</p>' +
       '<p class="err">' + esc(draft.err) + '</p>' +
       '<button class="btn" data-act="start">Выйти в студию</button>' +
     '</div></main>';
@@ -771,19 +898,18 @@ function chain(lines) {
   }).join("") + '</ol>';
 }
 
-function attemptCode() { var n; try { var a = new Uint32Array(1); window.crypto.getRandomValues(a); n = a[0]; } catch (e) { n = Math.floor(Math.random() * 4294967296); } n = 100000 + n % 900000; var s = String(n); return s.slice(0, 3) + " " + s.slice(3); }
 /* ---------- финал ---------- */
 function renderFinal() {
   if (!S.finishedAt) { S.finishedAt = Date.now(); save(); }
-  if (!S.code) { S.code = attemptCode(); save(); }
   var t = totals(), d = new Date(S.finishedAt);
+  gFinish("tnd", t.sum);
   var miss = mistakes();
   var h = '<section class="final' + (t.mark === 5 ? " gold" : "") + '"><div class="wrap">' +
     '<span class="onair">Эфир окончен</span>' +
     '<p class="won">Выигрыш</p><p class="sum">' + fmt(t.sum * RUB_PER_POINT) + ' ₽</p>' +
     '<div class="grade"><b>' + t.mark + '</b><span>' + t.word + '</span></div>' +
     '<p class="pts-line">' + t.sum + ' из ' + t.all + ' баллов · ' + t.pct + '% · ' + minutes() + ' мин</p>' +
-    '<div class="acode"><span>Код попытки</span><b>' + S.code + '</b></div>' +
+    gCard() +
     '</div></section><main class="wrap stage">' +
     '<div class="card"><h2>По раундам</h2>' +
       bar("«Либо — либо»", t.r1, t.max.r1) + bar("«Гость студии»", t.r2, t.max.r2) +
@@ -831,7 +957,7 @@ document.addEventListener("click", function (e) {
   if (act === "start") {
     if (!draft.name.trim()) { draft.err = "Представьтесь, пожалуйста: фамилия и имя."; renderStart(); return; }
     S = { name: draft.name.trim(), group: draft.group.trim(), seed: (Math.random() * 4294967296) >>> 0,
-      startedAt: Date.now(), pos: 0, ans: {}, code: attemptCode() };
+      startedAt: Date.now(), pos: 0, ans: {} };
     STEPS = null; top = true;
   } else if (!S) return;
   else {
@@ -871,7 +997,7 @@ setInterval(function () {
   if (c && S && !S.finishedAt) c.textContent = minutes() + "/" + MINUTES + " мин";
 }, 20000);
 
-render();
+render(); gInit();
 
 </script>
 </body>
